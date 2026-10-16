@@ -131,6 +131,14 @@ To avoid downloading the large CUDA build of PyTorch on hosts without a GPU, add
 
 Python, PyTorch, torchvision, Albumentations, Streamlit, pandas, Pillow
 
+
+The important addition is:
+
+```markdown
+## 📸 Deployed Application
+
+![Vehicle Classifier deployed application](https://raw.githubusercontent.com/MuhammadGhulamAbbas/Vehicle-Classification/main/Capture.PNG)
+
 ## License
 
 _Add your license here (for example, MIT)._
