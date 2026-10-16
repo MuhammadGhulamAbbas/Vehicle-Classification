@@ -1,6 +1,14 @@
 # 🚗 Vehicle Classifier
 
-A Streamlit web app that identifies the **make and model of a car** from a photo. It uses a **MobileNetV2** network fine-tuned with transfer learning on a 48-class dataset of vehicles common on Pakistani roads (Toyota, Honda, Suzuki, Daihatsu, KIA, FAW). Upload one or more images, or take a photo with your camera, and get the predicted model with a confidence score.
+A Streamlit web app that identifies the **make and model of a car** from a photo. It uses a **MobileNetV2** network fine-tuned with transfer learning on a 48-class dataset of vehicles common on Pakistani roads (Toyota, Honda, Suzuki, Daihatsu, KIA, FAW).
+
+Upload one or more images, or take a photo with your camera, and get the predicted model with a confidence score.
+
+## 📸 Deployed Application
+
+![Vehicle Classifier deployed application](https://raw.githubusercontent.com/MuhammadGhulamAbbas/Vehicle-Classification/main/Capture.PNG)
+
+## 🚀 Live Demo
 
 **Live demo:** _add your deployed link here_
 
@@ -19,31 +27,36 @@ Daiatsu (Core, Hijet, Mira) · FAW (V2, XPV) · Honda (BRV, City Aspire, City 19
 
 The full ordered list is in [`class_names.json`](class_names.json).
 
-## Model and training
+## Model and Training
 
 - **Architecture:** MobileNetV2 (ImageNet pretrained) with a new classifier head (Dropout 0.3 + Linear, 48 outputs)
 - **Data:** 2,631 train / 465 validation (stratified 15% split) / 751 test images. Class imbalance is 20.8x (largest vs smallest class)
 - **Class balancing:** `WeightedRandomSampler`, which reduces the imbalance to 1.84x per epoch
 - **Augmentation:** Albumentations, stronger for minority classes
-- **Training:** two stages: (1) head only with the backbone frozen, 5 epochs; (2) fine-tuning the upper backbone blocks with early stopping. Label smoothing is used, so confidences are naturally a bit lower
+- **Training:** Two stages:
+  1. Head only with the backbone frozen, 5 epochs
+  2. Fine-tuning the upper backbone blocks with early stopping
+- **Label smoothing:** Used during training, so confidence scores are naturally a bit lower
 - **Input:** 224 x 224 RGB, ImageNet mean/std normalization
-- **Model selection:** by validation macro-F1; the test set was never used for training decisions
+- **Model selection:** By validation macro-F1. The test set was never used for training decisions
 
-### Results (held-out test set, 751 images)
+### Results
 
-| Experiment | Balancing | Augmentation | Accuracy | Balanced acc. | Macro-F1 |
+Held-out test set: 751 images
+
+| Experiment | Balancing | Augmentation | Accuracy | Balanced Acc. | Macro-F1 |
 | --- | --- | --- | --- | --- | --- |
-| A | none | none | 0.9041 | 0.8459 | 0.8561 |
-| B | balanced | none | 0.8935 | 0.8411 | 0.8439 |
-| **C (deployed)** | **balanced** | **Albumentations** | **0.9108** | **0.8749** | **0.8792** |
+| A | None | None | 0.9041 | 0.8459 | 0.8561 |
+| B | Balanced | None | 0.8935 | 0.8411 | 0.8439 |
+| **C (Deployed)** | **Balanced** | **Albumentations** | **0.9108** | **0.8749** | **0.8792** |
 
-Augmentation reduced test errors from 80 to 67 (26 fixed, 13 newly broken). The error rate on minority classes dropped from 19.1% to 14.3%. McNemar's test gives p = 0.053, so the improvement is promising but not statistically significant at the 5% level.
+Augmentation reduced test errors from 80 to 67. It fixed 26 errors and introduced 13 new errors. The error rate on minority classes dropped from 19.1% to 14.3%. McNemar's test gives p = 0.053, so the improvement is promising but not statistically significant at the 5% level.
 
-The full experiment is in the notebook `Deep_Learning_Assigment.ipynb`.
+The full experiment is in the notebook [`Deep_Learning_Assigment.ipynb`](Deep_Learning_Assigment.ipynb).
 
-## Project structure
+## Project Structure
 
-```
+```text
 ├── app.py                          # Streamlit app
 ├── requirements.txt                # Python dependencies
 ├── vehicle_mobilenetv2_final.pt    # Trained weights (state_dict, experiment C)
@@ -54,91 +67,94 @@ The full experiment is in the notebook `Deep_Learning_Assigment.ipynb`.
 
 > The weights and `class_names.json` must come from the **same training run**. If they don't match, the app shows a clear error when loading.
 
-## Run locally
+## Run Locally
 
-1. **Clone the repo**
+### 1. Clone the Repository
 
-   ```bash
-   git clone <your-repo-url>
-   cd <your-repo-folder>
-   ```
+```bash
+git clone <your-repo-url>
+cd <your-repo-folder>
+```
 
-2. **Create and activate a virtual environment**
+### 2. Create and Activate a Virtual Environment
 
-   ```bash
-   python3 -m venv DL
-   source DL/bin/activate        # Windows: DL\Scripts\activate
-   ```
+```bash
+python3 -m venv DL
+source DL/bin/activate        # Windows: DL\Scripts\activate
+```
 
-3. **Install dependencies.** On a machine without an NVIDIA GPU, install the small CPU-only PyTorch first:
+### 3. Install Dependencies
 
-   ```bash
-   pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
-   pip install --no-cache-dir -r requirements.txt
-   ```
+On a machine without an NVIDIA GPU, install the CPU-only PyTorch build first:
 
-4. **Start the app**
+```bash
+pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install --no-cache-dir -r requirements.txt
+```
 
-   ```bash
-   streamlit run app.py
-   ```
+### 4. Start the App
 
-5. Open **http://localhost:8501** in your browser.
+```bash
+streamlit run app.py
+```
+
+### 5. Open the Application
+
+Open the following address in your browser:
+
+```text
+http://localhost:8501
+```
 
 If the model files are not next to `app.py`, you can upload them from the sidebar instead.
 
 ## Usage
 
 1. Open the app and wait for the sidebar to show **Model ready · 48 classes**.
-2. Use the **Upload images** tab (or the **Camera** tab) to add pictures.
+2. Use the **Upload Images** tab or the **Camera** tab to add pictures.
 3. Read the predicted model, confidence, and top-K probabilities.
-4. Adjust **Minimum confidence** in the sidebar to control when the app says "Uncertain".
-5. For several images, download the **Batch summary** as a CSV.
+4. Adjust **Minimum Confidence** in the sidebar to control when the app says "Uncertain".
+5. For several images, download the **Batch Summary** as a CSV.
 
 ## Deployment
 
-**Streamlit Community Cloud**
+### Streamlit Community Cloud
 
-1. Push `app.py`, `requirements.txt`, `vehicle_mobilenetv2_final.pt`, and `class_names.json` to a GitHub repo.
-2. Go to [share.streamlit.io](https://share.streamlit.io), sign in with GitHub, and select the repo.
-3. Set the main file to `app.py` and click **Deploy**.
+1. Push `app.py`, `requirements.txt`, `vehicle_mobilenetv2_final.pt`, and `class_names.json` to a GitHub repository.
+2. Go to [Streamlit Community Cloud](https://share.streamlit.io), sign in with GitHub, and select the repository.
+3. Set the main file to `app.py` and deploy the application.
 
-**Hugging Face Spaces:** create a Space with the Streamlit SDK and upload the same files.
+### Hugging Face Spaces
+
+Create a Space with the Streamlit SDK and upload the same files.
 
 To avoid downloading the large CUDA build of PyTorch on hosts without a GPU, add this as the first line of `requirements.txt`:
 
-```
+```text
 --extra-index-url https://download.pytorch.org/whl/cpu
 ```
 
 ## Limitations
 
-- The model only knows the 48 classes above. A different vehicle will still get a best guess, which is why the confidence threshold exists.
-- Some classes have few images (as few as 11 training images), and several are visually close (for example different Corolla or Civic generations), so these are the most likely to be confused.
+- The model only knows the 48 classes listed above. A different vehicle still receives a best guess, which is why the confidence threshold exists.
+- Some classes have few images, with as few as 11 training images.
+- Several classes are visually similar, such as different Corolla and Civic generations, so these classes are more likely to be confused.
 - The augmentation improvement over the non-augmented model is not statistically significant (p = 0.053).
 
 ## Troubleshooting
 
 | Problem | Fix |
 | --- | --- |
-| `size mismatch for classifier.1.weight` | The weights are not from the trained model (for example, the stock ImageNet checkpoint with 1000 outputs, `mobilenet_v2-b0353104.pth`). Use `vehicle_mobilenetv2_final.pt` from the same run as `class_names.json`. |
+| `size mismatch for classifier.1.weight` | The weights are not from the trained model, such as the stock ImageNet checkpoint with 1000 outputs, `mobilenet_v2-b0353104.pth`. Use `vehicle_mobilenetv2_final.pt` from the same run as `class_names.json`. |
 | "Weights not found" error | Put the `.pt` file and `class_names.json` next to `app.py`, or upload them in the sidebar. |
-| `No space left on device` during install | Install the CPU-only PyTorch build (see above) and use `--no-cache-dir`. |
-| `st.bar_chart(horizontal=True)` raises a `TypeError` | Upgrade Streamlit: `pip install --upgrade streamlit`. |
+| `No space left on device` during install | Install the CPU-only PyTorch build shown above and use `--no-cache-dir`. |
+| `st.bar_chart(horizontal=True)` raises a `TypeError` | Upgrade Streamlit with `pip install --upgrade streamlit`. |
 | Browser does not open automatically in WSL | Open `http://localhost:8501` manually. |
 
-## Tech stack
+## Tech Stack
 
 Python, PyTorch, torchvision, Albumentations, Streamlit, pandas, Pillow
 
-
-The important addition is:
-
-```markdown
-## 📸 Deployed Application
-
-![Vehicle Classifier deployed application](https://raw.githubusercontent.com/MuhammadGhulamAbbas/Vehicle-Classification/main/Capture.PNG)
-
 ## License
 
-_Add your license here (for example, MIT)._
+_Add your license here, for example, MIT._
